@@ -16,7 +16,7 @@ def read_waypoints_from_json(json_file):
         waypoints = [(point['latitude'], point['longitude']) for point in data['lap_waypoints']]
     return waypoints
 
-def create_waypoints_file(waypoints, output_file, start_altitude=113.78, waypoint_altitude=30.0):
+def create_waypoints_file(waypoints, output_file, start_altitude=113.78, waypoint_altitude=7.0):
     """
     Convert waypoints to QGC format and save as .waypoints file
     

@@ -199,23 +199,29 @@ def upload_mission(controller, home_pos, vertices, altitude):
     Uploading Mission to Flight Controller
     Takeoff and Land is at Arming Position
     Rest of the Waypoints are loaded from the JSON file
-
     """
     print("Uploading mission...")
     controller.mav.mission_clear_all_send(controller.target_system, controller.target_component)
     time.sleep(1)
+    
     mission_items = [MissionItem(0, current=1, x=home_pos[0], y=home_pos[1], z=altitude)]
     mission_items[0].command = mavutil.mavlink.MAV_CMD_NAV_TAKEOFF
     print("Takeoff waypoint added.")
-
+    
     for i, vertex in enumerate(vertices, start=1):
         mission_items.append(MissionItem(i, current=0, x=vertex['lat'], y=vertex['lon'], z=altitude))
         print(f"Waypoint {i} added: {vertex['lat']}, {vertex['lon']}")
-
-    mission_items.append(MissionItem(len(vertices)+1, current=0, x=home_pos[0], y=home_pos[1], z=0))
-    mission_items[-1].command = mavutil.mavlink.MAV_CMD_NAV_LAND
+    
+    hover_wp = MissionItem(len(vertices) + 1, current=0, x=home_pos[0], y=home_pos[1], z=altitude)
+    hover_wp.param1 = 30.0  
+    mission_items.append(hover_wp)
+    print(f"Hover waypoint added at altitude {altitude} for 30 seconds.")
+    
+    landing_wp = MissionItem(len(vertices) + 2, current=0, x=home_pos[0], y=home_pos[1], z=0)
+    landing_wp.command = mavutil.mavlink.MAV_CMD_NAV_LAND
+    mission_items.append(landing_wp)
     print("Landing waypoint added.")
-
+    
     controller.mav.mission_count_send(controller.target_system, controller.target_component, len(mission_items), 0)
     time.sleep(1)
     for item in mission_items:
@@ -238,6 +244,7 @@ def upload_mission(controller, home_pos, vertices, altitude):
         )
         time.sleep(0.001)
         print(f"Mission item {item.seq} uploaded.")
+
 
 def get_mission_count(controller):
     """

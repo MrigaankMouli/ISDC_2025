@@ -32,10 +32,12 @@ def generate_sequential_paths(waypoints, heights, fov_horizontal=90, fov_vertica
     for waypoint, height in zip(waypoints, heights):
         center_lat, center_lon = waypoint
         height_meters = height * 0.3048
+
+        size_reduction_factor = 0.7
         
         scale_factor = reference_height_meters / height_meters
-        half_sq_side_x_meters = reference_half_sq_side_x * scale_factor
-        half_sq_side_y_meters = reference_half_sq_side_y * scale_factor
+        half_sq_side_x_meters = reference_half_sq_side_x * scale_factor * size_reduction_factor
+        half_sq_side_y_meters = reference_half_sq_side_y * scale_factor * size_reduction_factor
 
         utm_proj = Proj(proj='utm', zone=18, ellps='WGS84')
         center_utm_x, center_utm_y = gps_to_utm(center_lon, center_lat)

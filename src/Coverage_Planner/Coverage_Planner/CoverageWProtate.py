@@ -144,31 +144,30 @@ class CoveragePlannerNode(Node):
         centroids_within_polygon = [centroid for centroid in centroids 
                                   if polygon.contains(centroid)]
         centroid_coords = np.array([(c.x, c.y) for c in centroids_within_polygon])
+        sorted_centroids = sorted(centroid_coords, key=lambda p: (p[1], p[0]))
         
-        sorted_centroids = sorted(centroid_coords, key=lambda p: (p[0], p[1]))
-        
-        columns = []
-        current_column = []
+        rows = []
+        current_row = []
         if len(sorted_centroids) > 0:
-            column_x = sorted_centroids[0][0]
+            row_y = sorted_centroids[0][1]
             tolerance = 1e-3
             
             for centroid in sorted_centroids:
-                if abs(centroid[0] - column_x) < tolerance:
-                    current_column.append(centroid)
+                if abs(centroid[1] - row_y) < tolerance:
+                    current_row.append(centroid)
                 else:
-                    columns.append(current_column)
-                    current_column = [centroid]
-                    column_x = centroid[0]
-            columns.append(current_column)
+                    rows.append(current_row)
+                    current_row = [centroid]
+                    row_y = centroid[1]
+            rows.append(current_row)
             
             boustrophedon_path = []
-            for i, column in enumerate(columns):
+            for i, row in enumerate(rows):
                 if i % 2 == 0:
-                    boustrophedon_path.extend(sorted(column, key=lambda p: p[1]))
+                    boustrophedon_path.extend(sorted(row, key=lambda p: p[0]))
                 else:
-                    boustrophedon_path.extend(sorted(column, key=lambda p: p[1], 
-                                                   reverse=True))
+                    boustrophedon_path.extend(sorted(row, key=lambda p: p[0], 
+                                                    reverse=True))
             
             fig, ax = plt.subplots()
             x, y = polygon.exterior.xy
@@ -178,12 +177,12 @@ class CoveragePlannerNode(Node):
                 ax.plot(centroid.x, centroid.y, 'bo')
             
             path_x, path_y = zip(*boustrophedon_path)
-            ax.plot(path_x, path_y, 'g-', marker='o', label='Column-First Path')
+            ax.plot(path_x, path_y, 'g-', marker='o', label='Boustrophedon Path')
             ax.set_aspect('equal')
             plt.legend()
             plt.show()
             
-            self.get_logger().info("Column-First Path:")
+            self.get_logger().info("Boustrophedon Path:")
             for point in boustrophedon_path:
                 self.get_logger().info(f"({point[0]}, {point[1]})")
             self.get_logger().info(f"Total waypoints: {len(boustrophedon_path)}")
